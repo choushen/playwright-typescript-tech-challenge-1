@@ -1,7 +1,8 @@
 require('dotenv').config();
 
-import * as path from 'path';
 import {test, expect } from '@playwright/test';
+import * as path from 'path';
+import { faker } from '@faker-js/faker';
 
 test.describe('Blog Post Creation and Validation', () => {
 
@@ -46,9 +47,13 @@ test.describe('Blog Post Creation and Validation', () => {
         const uploadButton = await page.locator('input[title="Image uploader for blog"]');
         const blogPostBodyContent = page.locator('#blogPostBodyContent');
         const postSummary = page.locator('p[aria-label="Post Summary"]');
-        const postTitle = page.locator('h1[aria-label="Post title"]');  
-
+        const postTitle = page.locator('h1[aria-label="Post title"]');
         
+        const postTitleText = faker.lorem.sentence();  
+        const postSummaryText = faker.lorem.sentences(2); 
+        const blogPostBodyContentText = faker.lorem.paragraph();  
+        
+
         console.log('Creating blog post with image...');
         await uploadButton.setInputFiles(imagePath);
         await page.setInputFiles('input[title="Image uploader for blog"]', imagePath);
@@ -60,16 +65,37 @@ test.describe('Blog Post Creation and Validation', () => {
 
         // Step: Click “Continue” to submit the blog post.
         await page.click('a[aria-label="Continue"]');
-
+        const checkbox = page.locator('input[type="checkbox"]');
+        await expect(checkbox).toBeVisible();
 
 
         // Step: Set “Publish” and “Make Feature Post” to Yes
+        await page.waitForSelector('text=save');
+        await checkbox.click();
+        await page.click('text=Save');
+
 
 
         // Step: Navigate to “All Posts” and validate that the blog post exists.
-
+        await page.waitForSelector('text=All Posts');
+        const postImagePreviewSrc = await page.getAttribute('img[aria-hidden="true"]', 'src');
+        await page.click('text=All Posts');
+        const listItem = page.locator(`li:has(img[src="${postImagePreviewSrc}"])`);
+        // Verify the image and the title to ensure it's the correct post
+        await expect(listItem).toBeVisible();
+        await expect(page.locator('li h2')).toHaveText(postTitleText);
 
         // Step: Verify the content of the blog post matches the input data.
+        await listItem.click();
+        
+        const titleLocator = page.locator('div h1');
+        await expect(titleLocator).toHaveText(postTitleText);
+
+        const summaryLocator = page.locator('div p strong');
+        await expect(summaryLocator).toHaveText(postSummaryText);
+
+        const bodyContentLocator = page.locator('section p');
+        await expect(bodyContentLocator).toHaveText(blogPostBodyContentText);
 
 
 
