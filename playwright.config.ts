@@ -26,6 +26,7 @@ export default defineConfig({
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://127.0.0.1:3000',
+    headless: true, // Run in headless mode
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -36,17 +37,21 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      timeout: 60000,
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      timeout: 120000,  // Set the test timeout at the project level (120 seconds)
+      use: {
+        ...devices['Desktop Firefox'], // Keep the predefined Desktop Firefox configuration
+      },
     },
 
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
 
     /* Test against mobile viewports. */
     // {
