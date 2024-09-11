@@ -16,11 +16,15 @@ test.describe('Blog Post Creation and Validation', () => {
             throw new Error('Environment variables USERNAME, PASSWORD, or BASE_URL are not defined.');
         } 
 
+
+
         // Step: Navigate to the specified URL
         await page.goto(baseUrl);
         await page.waitForSelector('#loginbtn', { state: 'visible' });
         await expect(page.locator('#loginbtn')).toBeVisible();
         console.log('Page loaded successfully');
+
+
 
         // Step: Log in using the provided credentials
         await page.locator('#Username').fill(username);
@@ -34,10 +38,12 @@ test.describe('Blog Post Creation and Validation', () => {
         console.log('Logged in successfully');
 
 
+
         // Step: Navigate to the profile menu and select "Add Blog Post."
         await profileButton.click();
         await page.getByRole('link', { name: 'Add Blog Post' }).click();
         await expect(page).toHaveURL(/.*\/blog\/post\/create\/.*/);
+
 
 
         // Step: Fill in the blog post form with the required text and image.
@@ -45,30 +51,32 @@ test.describe('Blog Post Creation and Validation', () => {
         const uploadButton = await page.locator('input[title="Image uploader for blog"]');
         const blogPostBodyContent = page.locator('#blogPostBodyContent');
         const postSummary = page.locator('p[aria-label="Post Summary"]');
-        const postTitle = page.locator('h1[aria-label="Post title"]');   
-        const postTitleText = faker.lorem.sentence();  
-        const postSummaryText = faker.lorem.sentences(2); 
-        const blogPostBodyContentText = faker.lorem.paragraph();  
+        const postTitle = page.locator('h1[aria-label="Post title"]');
+        
+        // use faker for random posttitle, post summary and blog post body content
+        const postTitleText = faker.lorem.words(3);
+        const postSummaryText = faker.lorem.sentence();
+        const blogPostBodyContentText = faker.lorem.sentence();
+        
         console.log('Creating blog post with image...');
         await uploadButton.setInputFiles(imagePath);
-        await postTitle.fill(postTitleText);
+        await postTitle.pressSequentially(postTitleText);
+        await page.keyboard.press('Tab');
         await page.waitForTimeout(500);
-        await postTitle.press('Enter');
-        await postSummary.fill(postSummaryText);
+        await postSummary.pressSequentially(postSummaryText);
+        await page.keyboard.press('Tab');
         await page.waitForTimeout(500);
-        await postSummary.press('Enter');
         await blogPostBodyContent.scrollIntoViewIfNeeded();
-        await blogPostBodyContent.fill(blogPostBodyContentText);
-        await page.waitForTimeout(500);
-        await blogPostBodyContent.press('Enter');
-
+        await blogPostBodyContent.pressSequentially(blogPostBodyContentText);
+        await page.keyboard.press('Tab');
+        console.log('Blog post form filled successfully');
 
         // Step: Click “Continue” to submit the blog post.
         console.log('Trying to submit blog post...');
         await page.click('a[aria-label="Continue"]');
         const checkbox = page.locator('label[data-original-title="Published blog posts are visible for everyone"] input[type="checkbox"]');
         await expect(checkbox).toBeEnabled();
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(1000);
         await checkbox.check({ force: true });
         await page.click('text=Save');
         const allPostsButton = page.locator('text=All Posts');
@@ -81,25 +89,35 @@ test.describe('Blog Post Creation and Validation', () => {
         console.log('Navigating to all posts...');
         const postImagePreviewSrc = await page.getAttribute('img[aria-hidden="true"]', 'src');
         await allPostsButton.click();
+        
+        // Wait for the list item containing the post image to appear
         const listItem = page.locator(`li:has(img[src="${postImagePreviewSrc}"])`);
+        await expect(listItem).toBeVisible();  // Ensure the list item is visible before interacting
+        
+        // Verify the title inside the located list item
         const postTitleLocator = listItem.locator('h2');
-        // Verify the image and the title to ensure it's the correct post
-        await expect(listItem).toBeVisible();
         await expect(postTitleLocator).toHaveText(postTitleText);
+        
         console.log('Blog post found in the list');
 
+
+
         // Step: Verify the content of the blog post matches the input data.
-        console.log('Validating blog post content...');
         await listItem.click();
-        await page.waitForTimeout(1000);
-        const titleLocator = page.locator('div h1');
-        await expect(titleLocator).toHaveText(postTitleText);
+        
+        // Validate blog post title
+        const titleLocator = page.locator('header h1');
+        await expect(titleLocator).toHaveText(postTitleText, { timeout: 5000 }); // Optional timeout
+            
 
-        const summaryLocator = page.locator('div p strong');
-        await expect(summaryLocator).toHaveText(postSummaryText);
+        // Validate blog post summary
+        const summaryLocator = page.locator('header p strong');
+        await expect(summaryLocator).toHaveText(postSummaryText, { timeout: 5000 });
 
-        const bodyContentLocator = page.locator('section.content p').first();
-        await expect(bodyContentLocator).toContainText(blogPostBodyContentText);
+        // Validate blog post body content
+        const bodyContentLocator = page.locator('section.content p'); // Targeting the first p element
+        await expect(bodyContentLocator).toContainText(blogPostBodyContentText, { timeout: 5000 });
+
         console.log('Blog post content validated successfully');
 
     }); // end of test
