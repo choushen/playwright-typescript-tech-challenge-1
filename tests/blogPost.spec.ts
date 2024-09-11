@@ -87,25 +87,28 @@ test.describe('Blog Post Creation and Validation', () => {
 
         // Step: Navigate to “All Posts” and validate that the blog post exists.
         console.log('Navigating to all posts...');
+        await page.waitForTimeout(1500);  // Wait for 4 seconds
+        // refresh page
+        await page.reload();
+        await expect(allPostsButton).toBeVisible({ timeout: 20000 });
         const postImagePreviewSrc = await page.getAttribute('img[aria-hidden="true"]', 'src');
         await allPostsButton.click();
-        
-        // Wait for the list item containing the post image to appear
-        const listItem = page.locator(`li:has(img[src="${postImagePreviewSrc}"])`);
-        await expect(listItem).toBeVisible();  // Ensure the list item is visible before interacting
-        
-        // Verify the title inside the located list item
-        const postTitleLocator = listItem.locator('h2');
-        await expect(postTitleLocator).toHaveText(postTitleText);
-        
+        // All Posts page should be visible
+        await page.locator(`li:has(img[src="${postImagePreviewSrc}"])`).waitFor({ state: 'attached', timeout: 20000 });
+        await page.locator('#person-blog-results').waitFor({ state: 'attached', timeout: 20000 });
+        const newBlogPost = page.locator('ul#person-blog-results li h2', { hasText: postTitleText });
+        const newBlogPostImage = page.locator(`li:has(img[src="${postImagePreviewSrc}"])`);
+        await expect(newBlogPost).toHaveText(postTitleText, { timeout: 5000 });
+        await expect(newBlogPostImage).toBeVisible({ timeout: 5000 });
         console.log('Blog post found in the list');
 
 
 
         // Step: Verify the content of the blog post matches the input data.
-        await listItem.click();
+        await newBlogPost.click();
         
         // Validate blog post title
+        await page.locator('header h1').waitFor({ timeout: 5000 });
         const titleLocator = page.locator('header h1');
         await expect(titleLocator).toHaveText(postTitleText, { timeout: 5000 }); // Optional timeout
             
@@ -119,6 +122,7 @@ test.describe('Blog Post Creation and Validation', () => {
         await expect(bodyContentLocator).toContainText(blogPostBodyContentText, { timeout: 5000 });
 
         console.log('Blog post content validated successfully');
+        
 
     }); // end of test
 
