@@ -1,4 +1,4 @@
-# Interact Tech Challenge - Playwright Blog Post Automation
+# ****** Tech Challenge - Playwright Blog Post Automation
 
 ## Requirements
 
@@ -8,7 +8,7 @@
 
 ## Objective
 
-- Logging into the interact demo web application.
+- Logging into the ****** demo web application.
 - Creating a blog post with both text and an image.
 - Publishing the blog post.
 - Verifying the post's existence and ensuring the content is accurate.
