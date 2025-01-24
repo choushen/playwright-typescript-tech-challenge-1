@@ -1,7 +1,7 @@
-# (COMPANY NAME REDACTED) Tech Challenge - Playwright Blog Post Automation
+# Tech Challenge - Playwright Blog Post Automation
 
 ## Disclaimer
-This is a tech challenge. I had limited time to complete it, and the site that I wrote this pack to test was a demo site, which was very buggy, hence the long waits.
+This is a tech challenge. I had limited time to complete it, and the site I wrote this pack to test was a demo site, which had its issues, hence the long waits.
 
 ## Requirements
 
